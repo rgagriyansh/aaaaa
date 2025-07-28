@@ -12,13 +12,12 @@ from PIL import Image
 from docx import Document
 from docx.oxml import OxmlElement
 
-# Set up logging
+# Set up logging - Vercel compatible (no file logging)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('claude_responses.log', encoding='utf-8'),
-        logging.StreamHandler()
+        logging.StreamHandler()  # Only console logging on Vercel
     ]
 )
 logger = logging.getLogger(__name__)

@@ -32,10 +32,10 @@ MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
 # Initialize the processor with better error handling
 processor = None
 try:
-    # Temporarily disable to test basic Flask functionality
-    # from main import IntegratedMathProcessor
-    # processor = IntegratedMathProcessor()
-    logger.info("Processor initialization skipped for testing")
+    # Re-enable processor now that filesystem issues are fixed
+    from main import IntegratedMathProcessor
+    processor = IntegratedMathProcessor()
+    logger.info("IntegratedMathProcessor initialized successfully")
 except Exception as e:
     logger.error(f"Failed to initialize IntegratedMathProcessor: {e}")
     logger.error(f"CLAUDE_API_KEY present: {bool(os.getenv('CLAUDE_API_KEY'))}")
