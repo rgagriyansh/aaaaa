@@ -4,7 +4,6 @@ import tempfile
 import uuid
 from datetime import datetime
 from werkzeug.utils import secure_filename
-from main import IntegratedMathProcessor
 import logging
 
 # Configure logging
@@ -14,6 +13,15 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'  # Change this in production
 
+# Add health check route for debugging
+@app.route('/health')
+def health_check():
+    return jsonify({
+        "status": "healthy", 
+        "timestamp": datetime.now().isoformat(),
+        "claude_api_key_set": bool(os.getenv('CLAUDE_API_KEY'))
+    })
+
 # Configuration
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff', 'webp'}
@@ -22,13 +30,16 @@ MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
 # Create upload folder if it doesn't exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Initialize the processor
+# Initialize the processor with better error handling
+processor = None
 try:
+    from main import IntegratedMathProcessor
     processor = IntegratedMathProcessor()
     logger.info("IntegratedMathProcessor initialized successfully")
 except Exception as e:
     logger.error(f"Failed to initialize IntegratedMathProcessor: {e}")
-    processor = None
+    logger.error(f"CLAUDE_API_KEY present: {bool(os.getenv('CLAUDE_API_KEY'))}")
+    # Don't crash the app, just log the error
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -258,10 +269,6 @@ def download_file(filename):
     except Exception as e:
         logger.error(f"Error downloading file {filename}: {e}")
         return jsonify({'error': 'File not found'}), 404
-
-@app.route('/health')
-def health_check():
-    return jsonify({'status': 'healthy', 'processor_available': processor is not None})
 
 # For Vercel serverless deployment
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
