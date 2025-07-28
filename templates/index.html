@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Document Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .upload-section {
+            padding: 40px;
+        }
+
+        .upload-area {
+            border: 3px dashed #ddd;
+            border-radius: 15px;
+            padding: 60px 20px;
+            text-align: center;
+            background: #fafafa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 30px;
+        }
+
+        .upload-area:hover {
+            border-color: #4facfe;
+            background: #f0f8ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #4facfe;
+            background: #e6f3ff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 4em;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .progress-container {
+            display: none;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .results {
+            margin-top: 30px;
+        }
+
+        .result-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #4facfe;
+        }
+
+        .result-item.error {
+            border-left-color: #dc3545;
+        }
+
+        .result-item.success {
+            border-left-color: #28a745;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .result-filename {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .result-status {
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .summary-section {
+            background: #d1ecf1 !important;
+            border-left-color: #17a2b8 !important;
+        }
+
+        .result-message {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .extracted-text {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .download-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 15px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #dc3545;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .upload-section {
+                padding: 30px 20px;
+            }
+            
+            .upload-area {
+                padding: 40px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📄 Math Document Converter</h1>
+            <p>Upload images with mathematical expressions and get formatted Word documents</p>
+        </div>
+
+        <div class="upload-section">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">Drag & drop images here or click to browse</div>
+                <div class="upload-hint">Supports: JPG, PNG, GIF, BMP, TIFF, WEBP (Max 16MB each)</div>
+                <input type="file" id="fileInput" class="file-input" multiple accept="image/*">
+            </div>
+
+            <div style="text-align: center;">
+                <button class="btn" onclick="document.getElementById('fileInput').click()">Choose Files</button>
+                <button class="btn" id="processBtn" onclick="processFiles()" disabled>Process Images</button>
+            </div>
+
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div style="text-align: center; margin-top: 10px; color: #666;">
+                    Processing images... Please wait
+                </div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <div>Processing your images...</div>
+            </div>
+
+            <div id="results" class="results"></div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const processBtn = document.getElementById('processBtn');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+
+        let selectedFiles = [];
+
+        // Drag and drop functionality
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files);
+            handleFiles(files);
+        });
+
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            handleFiles(files);
+        });
+
+        function handleFiles(files) {
+            selectedFiles = files.filter(file => file.type.startsWith('image/'));
+            processBtn.disabled = selectedFiles.length === 0;
+            
+            if (selectedFiles.length > 0) {
+                uploadArea.innerHTML = `
+                    <div class="upload-icon">✅</div>
+                    <div class="upload-text">${selectedFiles.length} file(s) selected</div>
+                    <div class="upload-hint">Click "Process Images" to convert to Word documents</div>
+                `;
+            }
+        }
+
+        async function processFiles() {
+            if (selectedFiles.length === 0) return;
+
+            // Show loading
+            loading.style.display = 'block';
+            progressContainer.style.display = 'block';
+            processBtn.disabled = true;
+            results.innerHTML = '';
+
+            const formData = new FormData();
+            selectedFiles.forEach(file => {
+                formData.append('files', file);
+            });
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    console.log('API Response:', data);
+                    displayResults(data.results, data.combined_document_path, data.total_images, data.successful_images);
+                } else {
+                    showError(data.error || 'An error occurred while processing files');
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+                progressContainer.style.display = 'none';
+                processBtn.disabled = false;
+                
+                // Reset upload area
+                uploadArea.innerHTML = `
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">Drag & drop images here or click to browse</div>
+                    <div class="upload-hint">Supports: JPG, PNG, GIF, BMP, TIFF, WEBP (Max 16MB each)</div>
+                `;
+                selectedFiles = [];
+            }
+        }
+
+        function displayResults(resultData, combinedDocumentPath, totalImages, successfulImages) {
+            console.log('Displaying results:', resultData);
+            console.log('Combined document path:', combinedDocumentPath);
+            
+            // Clear previous results
+            results.innerHTML = '';
+            
+            // Add summary section
+            if (combinedDocumentPath) {
+                const summaryDiv = document.createElement('div');
+                summaryDiv.className = 'result-item success summary-section';
+                
+                summaryDiv.innerHTML = `
+                    <div class="result-header">
+                        <div class="result-filename">📊 Processing Summary</div>
+                        <div class="result-status status-success">✅ Complete</div>
+                    </div>
+                    <div class="result-message">
+                        Successfully processed ${successfulImages} out of ${totalImages} images.
+                    </div>
+                    <div style="margin: 15px 0;">
+                        <a href="/download/${encodeURIComponent(combinedDocumentPath)}" 
+                           class="download-btn" style="background: #17a2b8; font-size: 1.1em; padding: 12px 24px;">
+                            📥 Download Combined Word Document
+                        </a>
+                    </div>
+                `;
+                results.appendChild(summaryDiv);
+            } else if (successfulImages === 0) {
+                // Show message when no images were successfully processed
+                const noResultsDiv = document.createElement('div');
+                noResultsDiv.className = 'result-item error';
+                
+                noResultsDiv.innerHTML = `
+                    <div class="result-header">
+                        <div class="result-filename">📊 Processing Summary</div>
+                        <div class="result-status status-error">❌ No Results</div>
+                    </div>
+                    <div class="result-message">
+                        No images were successfully processed. Please check that your images contain clear, readable text with mathematical expressions.
+                    </div>
+                `;
+                results.appendChild(noResultsDiv);
+            }
+            
+            // Add individual results
+            resultData.forEach(result => {
+                console.log('Processing result:', result);
+                const resultDiv = document.createElement('div');
+                resultDiv.className = `result-item ${result.status}`;
+                
+                let html = `
+                    <div class="result-header">
+                        <div class="result-filename">${result.filename}</div>
+                        <div class="result-status status-${result.status}">
+                            ${result.status === 'success' ? '✅ Success' : '❌ Error'}
+                        </div>
+                    </div>
+                    <div class="result-message">${result.message}</div>
+                `;
+
+                if (result.extracted_text) {
+                    html += `
+                        <div style="margin: 10px 0;">
+                            <strong>Extracted Text:</strong>
+                            <div class="extracted-text">${result.extracted_text}</div>
+                        </div>
+                    `;
+                }
+
+                resultDiv.innerHTML = html;
+                results.appendChild(resultDiv);
+            });
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            results.appendChild(errorDiv);
+        }
+    </script>
+</body>
+</html> 
