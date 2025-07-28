@@ -60,9 +60,9 @@ def generate_combined_document(extracted_texts):
         from datetime import datetime
         import os
         
-        # Generate filename first
+        # Generate filename first - use /tmp for Vercel compatibility
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        final_filename = f"combined_math_document_{timestamp}.docx"
+        final_filename = f"/tmp/combined_math_document_{timestamp}.docx"
         
         # Create temporary documents for each section with proper math formatting
         temp_files = []

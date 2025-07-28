@@ -1147,7 +1147,7 @@ def process_text_directly(processor):
         
         # Generate document
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f"math_doc_text_{timestamp}.docx"
+        filename = f"/tmp/math_doc_text_{timestamp}.docx"
         
         print(f"\n📄 Creating document: {filename}")
         
