@@ -23,19 +23,19 @@ def health_check():
     })
 
 # Configuration
-UPLOAD_FOLDER = 'uploads'
+UPLOAD_FOLDER = '/tmp'  # Use tmp directory on Vercel
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff', 'webp'}
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
 
-# Create upload folder if it doesn't exist
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+# Note: No need to create upload folder - /tmp exists on Vercel
 
 # Initialize the processor with better error handling
 processor = None
 try:
-    from main import IntegratedMathProcessor
-    processor = IntegratedMathProcessor()
-    logger.info("IntegratedMathProcessor initialized successfully")
+    # Temporarily disable to test basic Flask functionality
+    # from main import IntegratedMathProcessor
+    # processor = IntegratedMathProcessor()
+    logger.info("Processor initialization skipped for testing")
 except Exception as e:
     logger.error(f"Failed to initialize IntegratedMathProcessor: {e}")
     logger.error(f"CLAUDE_API_KEY present: {bool(os.getenv('CLAUDE_API_KEY'))}")
