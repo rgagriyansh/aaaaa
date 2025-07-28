@@ -229,7 +229,7 @@ def upload_files():
     
     return jsonify({
         'results': results,
-        'combined_document_path': combined_document_path,
+        'combined_document_path': os.path.basename(combined_document_path) if combined_document_path else None,
         'total_images': len(files),
         'successful_images': successful_images
     })
@@ -237,13 +237,25 @@ def upload_files():
 @app.route('/download/<path:filename>')
 def download_file(filename):
     try:
-        # Get the absolute path to the file
-        file_path = os.path.abspath(filename)
+        # If it's just a filename (not a full path), check in /tmp first for generated documents
+        if not filename.startswith('/'):
+            tmp_path = os.path.join('/tmp', filename)
+            if os.path.exists(tmp_path):
+                file_path = tmp_path
+            else:
+                # Fall back to current directory
+                file_path = os.path.abspath(filename)
+        else:
+            # It's already a full path
+            file_path = os.path.abspath(filename)
         
-        # Security check: ensure the file is in the current directory or subdirectories
+        # Security check: ensure the file is in the current directory, subdirectories, or /tmp
         current_dir = os.path.abspath('.')
-        if not file_path.startswith(current_dir):
-            logger.error(f"Security violation: Attempted to access file outside current directory: {file_path}")
+        tmp_dir = os.path.abspath('/tmp')
+        
+        # Allow access to current directory or /tmp directory (for Vercel compatibility)
+        if not (file_path.startswith(current_dir) or file_path.startswith(tmp_dir)):
+            logger.error(f"Security violation: Attempted to access file outside allowed directories: {file_path}")
             return jsonify({'error': 'Access denied'}), 403
         
         # Check if file exists
@@ -257,7 +269,7 @@ def download_file(filename):
         return send_file(file_path, as_attachment=True, download_name=original_filename)
     except Exception as e:
         logger.error(f"Error downloading file {filename}: {e}")
-        return jsonify({'error': 'File not found'}), 404
+        return jsonify({'error': f'Download error: {str(e)}'}), 500
 
 @app.route('/health')
 def health_check():
